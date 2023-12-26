@@ -586,8 +586,39 @@ theorem splay_Forall (t : STree α) (key : Nat) (p : Nat -> α -> Prop)
         . constructor <;> try assumption
           constructor <;> assumption
         . by_cases' (key < lk) hltlk
-          . sorry -- TODO need to destruct but keep equation
-          . sorry -- TODO need to destruct but keep equation
+          . cases hdes : ll.splay key with
+            | leaf =>
+              simp
+              repeat constructor
+              all_goals try assumption
+              constructor <;> assumption
+            | node lll llk llv llr =>
+              have hfsll : ForallTree p (ll.splay key) := by apply ihll; apply hfll
+              rw [hdes] at hfsll
+              cases hfsll
+              rename_i hflll hllk hfllr
+              simp
+              repeat constructor
+              all_goals (try assumption)
+              repeat constructor
+              all_goals (try assumption)
+              constructor <;> assumption
+          . cases hdes : lr.splay key with
+            | leaf =>
+              simp
+              repeat constructor
+              all_goals try assumption
+              constructor <;> assumption
+            | node lrl lrk lrv lrr =>
+              have hfslr : ForallTree p (lr.splay key) := by apply ihlr; apply hflr
+              rw [hdes] at hfslr
+              cases hfslr
+              rename_i hflrl hlrk hflrr
+              simp
+              repeat constructor
+              all_goals (try assumption)
+              constructor
+              all_goals assumption
   | ind_tr k v rl rk rv rr ihrl ihrr =>
     intro h
     simp
@@ -601,8 +632,41 @@ theorem splay_Forall (t : STree α) (key : Nat) (p : Nat -> α -> Prop)
         . constructor <;> try assumption
           constructor <;> assumption
         . by_cases' (key < rk) hltrk
-          . sorry -- TODO need to destruct but keep equation
-          . sorry -- TODO need to destruct but keep equation
+          . cases hdes : rl.splay key with
+            | leaf =>
+              simp
+              constructor
+              constructor
+              constructor
+              all_goals assumption
+            | node rll rlk rlv rlr =>
+              have hfsrl : ForallTree p (rl.splay key) := by apply ihrl; apply hfrl
+              rw [hdes] at hfsrl
+              cases hfsrl
+              rename_i hfrll hrlk hfrlr
+              simp
+              constructor
+              constructor
+              constructor
+              apply hp
+              apply hfrll
+              apply hrlk
+              constructor <;> assumption
+          . cases hdes : rr.splay key with
+            | leaf =>
+              simp
+              constructor
+              constructor
+              constructor
+              all_goals assumption
+            | node rrl rrk rrv rrr =>
+              have hfsrr : ForallTree p (rr.splay key) := by apply ihrr; apply hfrr
+              rw [hdes] at hfsrr
+              cases hfsrr
+              rename_i hfrrl hrrk hfrrr
+              simp
+              repeat constructor
+              all_goals assumption
   | ind k v ll lk lv lr rl rk rv rr ihll ihlr ihrl ihrr =>
     intro h
     simp
@@ -616,16 +680,75 @@ theorem splay_Forall (t : STree α) (key : Nat) (p : Nat -> α -> Prop)
           . constructor <;> try assumption
             constructor <;> assumption
           . by_cases' (key < lk) hltlk
-            . sorry -- TODO need to destruct but keep equation
-            . sorry -- TODO need to destruct but keep equation
+            . cases hdes : ll.splay key with
+              | leaf =>
+                simp
+                repeat constructor
+                all_goals try assumption
+                constructor <;> assumption
+              | node lll llk llv llr =>
+                have hfsll : ForallTree p (ll.splay key) := by apply ihll; apply hfll
+                rw [hdes] at hfsll
+                cases hfsll
+                rename_i hflll hllk hfllr
+                simp
+                repeat constructor
+                all_goals (try assumption)
+                repeat constructor
+                all_goals (try assumption)
+                constructor <;> assumption
+            . cases hdes : lr.splay key with
+              | leaf =>
+                simp
+                repeat constructor
+                all_goals try assumption
+                constructor <;> assumption
+              | node lrl lrk lrv lrr =>
+                have hfslr : ForallTree p (lr.splay key) := by apply ihlr; apply hflr
+                rw [hdes] at hfslr
+                cases hfslr
+                rename_i hflrl hlrk hflrr
+                simp
+                repeat constructor
+                all_goals (try assumption)
+                constructor
+                all_goals assumption
       . cases hfr with
         | node _ _ _ _ hfrl hpr hfrr =>
           by_cases' (key = rk) heqrk
           . constructor <;> try assumption
             constructor <;> assumption
-          . by_cases' (key < rk) hltrk
-            . sorry -- TODO need to destruct but keep equation
-            . sorry -- TODO need to destruct but keep equation
+          . cases hfl
+            rename_i hfrll hrlk hfrlr
+            by_cases' (key < rk) hltrk
+            . cases hdes : rl.splay key with
+              | leaf =>
+                simp
+                repeat constructor
+                all_goals try assumption
+              | node rll rlk rlv rlr =>
+                have hfsrl : ForallTree p (rl.splay key) := by apply ihrl; apply hfrl
+                rw [hdes] at hfsrl
+                cases hfsrl
+                simp
+                repeat constructor
+                all_goals try assumption
+                constructor <;> assumption
+            . cases hdes : rr.splay key with
+              | leaf =>
+                simp
+                constructor
+                constructor
+                constructor
+                all_goals assumption
+              | node rrl rrk rrv rrr =>
+                have hfsrr : ForallTree p (rr.splay key) := by apply ihrr; apply hfrr
+                rw [hdes] at hfsrr
+                cases hfsrr
+                rename_i hfrrl hrrk hfrrr
+                simp
+                repeat constructor
+                all_goals assumption
 
 theorem splay_splayBST (t : STree α) (key : Nat)
   : splayBST t -> splayBST (t.splay key) := by
@@ -656,8 +779,8 @@ theorem splay_splayBST (t : STree α) (key : Nat)
               rw [splayBST_equiv]; assumption
               constructor
           . by_cases' (key < lk) hlklt
-            . match ll.splay key with
-              | .leaf =>
+            . cases hdes : ll.splay key with
+              | leaf =>
                 simp
                 rw [<-splayBST_equiv]
                 constructor
@@ -672,31 +795,75 @@ theorem splay_splayBST (t : STree α) (key : Nat)
                 constructor
                 rw [splayBST_equiv]; assumption
                 constructor
-              | .node lll llk llv llr =>
+              | node lll llk llv llr =>
                 simp
                 rw [<-splayBST_equiv]
+                rw [hdes] at ihll
+                rw [<-splayBST_equiv] at ihll
+                cases ihll
+                rename_i ihlll ihflll ihllr ihfllr
+                constructor <;> try assumption
+                constructor <;> try assumption
+                sorry -- need to show llk < lk
                 constructor
-                -- TODO lost info here: ll.splay key = .node lll llk llv llr
-                sorry
-                sorry
-                sorry
+                sorry -- need to show llk < lr
+                sorry -- need to show llk < k
                 constructor
-                sorry
+                constructor
+                sorry -- need to show llr < lk
                 constructor
                 assumption
                 assumption
                 constructor
-                sorry
+                assumption
                 constructor
                 assumption
                 constructor
                 rw [splayBST_equiv]; assumption
                 constructor
-            . sorry -- gonna lose information unless I can destruct and keep the equality
+            . cases hdes : lr.splay key with -- TODO NOTE THIS: equivalent of destruct eqn:hdes
+              | leaf =>
+                simp
+                rw [<-splayBST_equiv]
+                constructor <;> try assumption
+                constructor <;> try assumption
+                constructor
+                rw [splayBST_equiv]
+                assumption
+                constructor <;> try assumption
+                constructor
+                rw [splayBST_equiv]
+                assumption
+                constructor
+              | node lrl lrk lrv lrr =>
+                simp
+                rw [<-splayBST_equiv]
+                rw [hdes] at ihlr
+                rw [<-splayBST_equiv] at ihlr
+                cases ihlr
+                rename_i ihlrl ihflrl ihlrr ihflrr
+                constructor
+                constructor
+                sorry -- need to show ll < lrk
+                sorry -- need to show lk < lrk
+                assumption
+                constructor <;> try assumption
+                sorry -- need to show k > lrk
+                constructor
+                constructor <;> try assumption
+                sorry -- need to show lrl < lk
+                rw [splayBST_equiv]; apply hsbstll
+                constructor
+                sorry -- need to show lrr < k
+                constructor
+                apply ihlrr
+                constructor
       case neg =>
-        apply splayBST.node_l <;> assumption
-  | node_r k v rl rk rv rr hfrl hfrr hfr hsbstrl hsbstrr ihrl ihrr => sorry
-  | node_rl k v ll lk lv lr rl rk rv rr hfll hflr hfrl hfrr hfl hfr hsbstll hsbstlr hbstrl hbstrr ihll ihlr ihrl ihrr => sorry
+        sorry
+  | node_r k v rl rk rv rr hfrl hfrr hfr hsbstrl hsbstrr ihrl ihrr =>
+    sorry
+  | node_rl k v ll lk lv lr rl rk rv rr hfll hflr hfrl hfrr hfl hfr hsbstll hsbstlr hsbstrl hsbstrr ihll ihlr ihrl ihrr =>
+    sorry
 
 theorem splay_BST (t : STree α) (key : Nat)
   : BST t -> BST (t.splay key) := by
