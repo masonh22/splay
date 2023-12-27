@@ -764,106 +764,426 @@ theorem splay_splayBST (t : STree α) (key : Nat)
     case neg =>
       by_cases' (key < k) hlt
       case pos =>
-        cases hfl with
-        | node _ _ _ _ hfll2 hlk hflr2 => 
-          by_cases' (key = lk) hlkeq
-          . rw [<-splayBST_equiv]
-            constructor
-            . assumption
-            . constructor <;> try assumption
-              constructor
-            . rw [splayBST_equiv]; assumption
-            . constructor
-              assumption
-              constructor
+        cases hfl
+        rename_i hfll2 hlk hflr2
+        by_cases' (key = lk) hlkeq
+        case pos =>
+          rw [<-splayBST_equiv]
+          repeat constructor
+          all_goals repeat constructor
+          all_goals try simp [*]
+          all_goals repeat constructor
+          all_goals (rw [splayBST_equiv]; assumption)
+        case neg =>
+          by_cases' (key < lk) hlklt
+          case pos =>
+            cases hdes : ll.splay key with
+            | leaf =>
+              simp
+              rw [<-splayBST_equiv]
+              repeat constructor
+              all_goals repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals (rw [splayBST_equiv]; assumption)
+            | node lll llk llv llr =>
+              simp
+              have hfsll : ForallTree (fun k' _ ↦ k' < lk) (ll.splay key) := by
+                apply splay_Forall; assumption
+              have hfsll2 : ForallTree (fun k' _ ↦ k' < k) (ll.splay key) := by
+                apply splay_Forall; assumption
+              rw [hdes] at hfsll
+              rw [hdes] at hfsll2
+              cases hfsll
+              rename_i hfslll hllk hfsllr
+              cases hfsll2
+              rename_i hfslll2 hllk2 hfsllr2
+              rw [hdes] at ihll
+              rw [<-splayBST_equiv] at ihll
+              cases ihll
+              rename_i ihlll ihflll ihllr ihfllr
+              rw [<-splayBST_equiv]
+              repeat constructor <;> repeat constructor
+              all_goals repeat constructor
+              all_goals repeat constructor
+              all_goals try simp [*]
+              apply ForallTree_greater; apply hflr; assumption
               rw [splayBST_equiv]; assumption
-              constructor
-          . by_cases' (key < lk) hlklt
-            . cases hdes : ll.splay key with
-              | leaf =>
-                simp
-                rw [<-splayBST_equiv]
-                constructor
-                assumption
-                constructor
-                assumption
-                assumption
-                constructor
-                rw [splayBST_equiv]; assumption
-                constructor
-                assumption
-                constructor
-                rw [splayBST_equiv]; assumption
-                constructor
-              | node lll llk llv llr =>
-                simp
-                rw [<-splayBST_equiv]
-                rw [hdes] at ihll
-                rw [<-splayBST_equiv] at ihll
-                cases ihll
-                rename_i ihlll ihflll ihllr ihfllr
-                constructor <;> try assumption
-                constructor <;> try assumption
-                sorry -- need to show llk < lk
-                constructor
-                sorry -- need to show llk < lr
-                sorry -- need to show llk < k
-                constructor
-                constructor
-                sorry -- need to show llr < lk
-                constructor
-                assumption
-                assumption
-                constructor
-                assumption
-                constructor
-                assumption
-                constructor
-                rw [splayBST_equiv]; assumption
-                constructor
-            . cases hdes : lr.splay key with -- TODO NOTE THIS: equivalent of destruct eqn:hdes
-              | leaf =>
-                simp
-                rw [<-splayBST_equiv]
-                constructor <;> try assumption
-                constructor <;> try assumption
-                constructor
-                rw [splayBST_equiv]
-                assumption
-                constructor <;> try assumption
-                constructor
-                rw [splayBST_equiv]
-                assumption
-                constructor
-              | node lrl lrk lrv lrr =>
-                simp
-                rw [<-splayBST_equiv]
-                rw [hdes] at ihlr
-                rw [<-splayBST_equiv] at ihlr
-                cases ihlr
-                rename_i ihlrl ihflrl ihlrr ihflrr
-                constructor
-                constructor
-                sorry -- need to show ll < lrk
-                sorry -- need to show lk < lrk
-                assumption
-                constructor <;> try assumption
-                sorry -- need to show k > lrk
-                constructor
-                constructor <;> try assumption
-                sorry -- need to show lrl < lk
-                rw [splayBST_equiv]; apply hsbstll
-                constructor
-                sorry -- need to show lrr < k
-                constructor
-                apply ihlrr
-                constructor
+          case neg =>
+            cases hdes : lr.splay key with -- TODO NOTE THIS: equivalent of destruct eqn:hdes
+            | leaf =>
+              simp
+              rw [<-splayBST_equiv]
+              repeat constructor
+              all_goals repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals (rw [splayBST_equiv]; assumption)
+            | node lrl lrk lrv lrr =>
+              simp
+              have hfslr : ForallTree (fun k' _ ↦ k' > lk) (lr.splay key) := by
+                apply splay_Forall; assumption
+              have hfslr2 : ForallTree (fun k' _ ↦ k' < k) (lr.splay key) := by
+                apply splay_Forall; assumption
+              rw [hdes] at hfslr
+              rw [hdes] at hfslr2
+              cases hfslr
+              rename_i hfslrl hlrk hfslrr
+              cases hfslr2
+              rename_i hfslrl2 hlrk2 hfslrr2
+              rw [hdes] at ihlr
+              rw [<-splayBST_equiv] at ihlr
+              cases ihlr
+              rename_i ihlrl ihflrl ihlrr ihflrr
+              rw [<-splayBST_equiv]
+              repeat constructor <;> repeat constructor
+              all_goals repeat constructor
+              all_goals repeat constructor
+              all_goals try simp [*]
+              apply ForallTree_less; apply hfll; assumption
+              rw [splayBST_equiv]; assumption
       case neg =>
-        sorry
+        apply splayBST.node_l <;> simp [*]
   | node_r k v rl rk rv rr hfrl hfrr hfr hsbstrl hsbstrr ihrl ihrr =>
-    sorry
+    simp
+    by_cases' (key = k) heq
+    case pos =>
+      apply splayBST.node_r <;> simp [*]
+    case neg =>
+      by_cases' (key < k) hlt
+      case pos =>
+        apply splayBST.node_r <;> simp [*]
+      case neg =>
+        cases hfr
+        rename_i hfrl2 hfrk hfrr2
+        by_cases' (key = rk) heqrk
+        case pos =>
+          rw [<-splayBST_equiv]
+          repeat constructor
+          all_goals repeat constructor
+          all_goals try simp [*]
+          all_goals repeat constructor
+          all_goals (rw [splayBST_equiv]; assumption)
+        case neg =>
+          by_cases' (key < rk) hltrk
+          case pos =>
+            cases hdes : rl.splay key with
+            | leaf =>
+              simp
+              rw [<-splayBST_equiv]
+              repeat constructor
+              all_goals repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals (rw [splayBST_equiv]; assumption)
+            | node rll rlk rlv rlr =>
+              simp
+              have hfsrl : ForallTree (fun k' _ ↦ k' < rk) (rl.splay key) := by
+                apply splay_Forall; assumption
+              have hfsrl2 : ForallTree (fun k' _ ↦ k' > k) (rl.splay key) := by
+                apply splay_Forall; assumption
+              rw [hdes] at hfsrl
+              rw [hdes] at hfsrl2
+              cases hfsrl
+              rename_i hfsrll hrlk hfsrlr
+              cases hfsrl2
+              rename_i hfsrll2 hrlk2 hfsrlr2
+              rw [hdes] at ihrl
+              rw [<-splayBST_equiv] at ihrl
+              cases ihrl
+              rename_i ihrll ihfrll ihrlr ihfrlr
+              rw [<-splayBST_equiv]
+              repeat constructor <;> repeat constructor
+              all_goals repeat constructor
+              all_goals repeat constructor
+              all_goals try simp [*]
+              apply ForallTree_greater; apply hfrr; assumption
+              rw [splayBST_equiv]; assumption
+          case neg =>
+            cases hdes : rr.splay key with
+            | leaf =>
+              simp
+              rw [<-splayBST_equiv]
+              repeat constructor
+              all_goals repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals (rw [splayBST_equiv]; assumption)
+            | node rrl rrk rrv rrr =>
+              simp
+              have hfsrr : ForallTree (fun k' _ ↦ k' > rk) (rr.splay key) := by
+                apply splay_Forall; assumption
+              have hfsrr2 : ForallTree (fun k' _ ↦ k' > k) (rr.splay key) := by
+                apply splay_Forall; assumption
+              rw [hdes] at hfsrr
+              rw [hdes] at hfsrr2
+              cases hfsrr
+              rename_i hfsrrl hrrk hfsrrr
+              cases hfsrr2
+              rename_i hfsrrl2 hrrk2 hfsrrr2
+              rw [hdes] at ihrr
+              rw [<-splayBST_equiv] at ihrr
+              cases ihrr
+              rename_i ihrrl ihfrrl ihrrr ihfrrr
+              rw [<-splayBST_equiv]
+              repeat constructor <;> repeat constructor
+              all_goals repeat constructor
+              all_goals repeat constructor
+              all_goals try simp [*]
+              apply ForallTree_less; apply hfrl; assumption
+              rw [splayBST_equiv]; assumption
   | node_rl k v ll lk lv lr rl rk rv rr hfll hflr hfrl hfrr hfl hfr hsbstll hsbstlr hsbstrl hsbstrr ihll ihlr ihrl ihrr =>
-    sorry
+    simp
+    by_cases' (key = k) heq
+    case pos =>
+      apply splayBST.node_rl <;> simp [*]
+    case neg =>
+      cases hfr
+      rename_i hfrl2 hfrk hfrr2
+      cases hfl
+      rename_i hfll2 hflk hflr2
+      by_cases' (key < k) hlt
+      case pos =>
+        by_cases' (key = lk) heqlk
+        case pos =>
+          rw [<-splayBST_equiv]
+          repeat constructor
+          all_goals try simp [*]
+          all_goals repeat constructor
+          all_goals try simp [*]
+          all_goals repeat constructor
+          all_goals try simp [*]
+          apply ForallTree_greater
+          apply hfrl2
+          assumption
+          linarith
+          apply ForallTree_greater
+          apply hfrr2
+          assumption
+          all_goals (rw [splayBST_equiv]; assumption)
+        case neg =>
+          by_cases' (key < lk) hltlk
+          case pos =>
+            cases hdes : ll.splay key with
+            | leaf =>
+              simp
+              rw [<-splayBST_equiv]
+              repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              apply ForallTree_greater
+              apply hfrl2
+              assumption
+              linarith
+              apply ForallTree_greater
+              apply hfrr2
+              assumption
+              all_goals (rw [splayBST_equiv]; assumption)
+            | node lll llk llv llr =>
+              simp
+              have hfsll : ForallTree (fun k' _ ↦ k' < lk) (ll.splay key) := by
+                apply splay_Forall; assumption
+              have hfsll2 : ForallTree (fun k' _ ↦ k' < k) (ll.splay key) := by
+                apply splay_Forall; assumption
+              rw [hdes] at hfsll
+              rw [hdes] at hfsll2
+              cases hfsll
+              rename_i hfslll hllk hfsllr
+              cases hfsll2
+              rename_i hfslll2 hllk2 hfsllr2
+              rw [hdes] at ihll
+              rw [<-splayBST_equiv] at ihll
+              cases ihll
+              rename_i ihlll ihflll ihllr ihfllr
+              rw [<-splayBST_equiv]
+              repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              apply ForallTree_greater; apply hflr; assumption
+              all_goals repeat constructor
+              all_goals try simp [*]
+              apply ForallTree_greater; apply hfrl2; assumption
+              linarith
+              apply ForallTree_greater; apply hfrr2; assumption
+              apply ForallTree_greater; apply hfrl2; assumption
+              linarith
+              apply ForallTree_greater; apply hfrr2; assumption
+              all_goals (rw [splayBST_equiv]; assumption)
+          case neg =>
+            cases hdes : lr.splay key with -- TODO NOTE THIS: equivalent of destruct eqn:hdes
+            | leaf =>
+              simp
+              rw [<-splayBST_equiv]
+              repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              apply ForallTree_greater
+              apply hfrl2
+              assumption
+              linarith
+              apply ForallTree_greater
+              apply hfrr2
+              assumption
+              all_goals (rw [splayBST_equiv]; assumption)
+            | node lrl lrk lrv lrr =>
+              simp
+              have hfslr : ForallTree (fun k' _ ↦ k' > lk) (lr.splay key) := by
+                apply splay_Forall; assumption
+              have hfslr2 : ForallTree (fun k' _ ↦ k' < k) (lr.splay key) := by
+                apply splay_Forall; assumption
+              rw [hdes] at hfslr
+              rw [hdes] at hfslr2
+              cases hfslr
+              rename_i hfslrl hlrk hfslrr
+              cases hfslr2
+              rename_i hfslrl2 hlrk2 hfslrr2
+              rw [hdes] at ihlr
+              rw [<-splayBST_equiv] at ihlr
+              cases ihlr
+              rename_i ihlrl ihflrl ihlrr ihflrr
+              rw [<-splayBST_equiv]
+              repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              apply ForallTree_less; apply hfll; assumption
+              apply ForallTree_greater; apply hfrl2; assumption
+              linarith
+              apply ForallTree_greater; apply hfrr2; assumption
+              all_goals (rw [splayBST_equiv]; assumption)
+      case neg =>
+        by_cases' (key = rk) heqrk
+        case pos =>
+          rw [<-splayBST_equiv]
+          repeat constructor
+          all_goals try simp [*]
+          all_goals repeat constructor
+          all_goals try simp [*]
+          all_goals repeat constructor
+          all_goals try simp [*]
+          apply ForallTree_less
+          apply hfll
+          linarith
+          linarith
+          apply ForallTree_less
+          apply hflr2
+          assumption
+          all_goals (rw [splayBST_equiv]; assumption)
+        case neg =>
+          by_cases' (key < rk) hltrk
+          case pos =>
+            cases hdes : rl.splay key with
+            | leaf =>
+              simp
+              rw [<-splayBST_equiv]
+              repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              apply ForallTree_less
+              apply hfll2
+              assumption
+              linarith
+              apply ForallTree_less
+              apply hflr2
+              assumption
+              all_goals (rw [splayBST_equiv]; assumption)
+            | node rll rlk rlv rlr =>
+              simp
+              have hfsrl : ForallTree (fun k' _ ↦ k' < rk) (rl.splay key) := by
+                apply splay_Forall; assumption
+              have hfsrl2 : ForallTree (fun k' _ ↦ k' > k) (rl.splay key) := by
+                apply splay_Forall; assumption
+              rw [hdes] at hfsrl
+              rw [hdes] at hfsrl2
+              cases hfsrl
+              rename_i hfsrll hrlk hfsrlr
+              cases hfsrl2
+              rename_i hfsrll2 hrlk2 hfsrlr2
+              rw [hdes] at ihrl
+              rw [<-splayBST_equiv] at ihrl
+              cases ihrl
+              rename_i ihrll ihfrll ihrlr ihfrlr
+              rw [<-splayBST_equiv]
+              repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              apply ForallTree_less; apply hfll2; assumption
+              all_goals repeat constructor
+              all_goals try simp [*]
+              linarith
+              apply ForallTree_less; apply hflr2; assumption
+              apply ForallTree_greater; apply hfrr; assumption
+              all_goals (rw [splayBST_equiv]; assumption)
+          case neg =>
+            cases hdes : rr.splay key with
+            | leaf =>
+              simp
+              rw [<-splayBST_equiv]
+              repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              apply ForallTree_less
+              apply hfll2
+              assumption
+              linarith
+              apply ForallTree_less
+              apply hflr2
+              assumption
+              all_goals (rw [splayBST_equiv]; assumption)
+            | node rrl rrk rrv rrr =>
+              simp
+              have hfsrr : ForallTree (fun k' _ ↦ k' > rk) (rr.splay key) := by
+                apply splay_Forall; assumption
+              have hfsrr2 : ForallTree (fun k' _ ↦ k' > k) (rr.splay key) := by
+                apply splay_Forall; assumption
+              rw [hdes] at hfsrr
+              rw [hdes] at hfsrr2
+              cases hfsrr
+              rename_i hfsrrl hrrk hfsrrr
+              cases hfsrr2
+              rename_i hfsrrl2 hrrk2 hfsrrr2
+              rw [hdes] at ihrr
+              rw [<-splayBST_equiv] at ihrr
+              cases ihrr
+              rename_i ihrrl ihfrrl ihrrr ihfrrr
+              rw [<-splayBST_equiv]
+              repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              all_goals repeat constructor
+              all_goals try simp [*]
+              apply ForallTree_less; apply hfll2; assumption
+              linarith
+              apply ForallTree_less; apply hflr2; assumption
+              apply ForallTree_less; apply hfrl; assumption
+              apply ForallTree_less; apply hfll2; assumption
+              linarith
+              apply ForallTree_less; apply hflr2; assumption
+              constructor
+              all_goals try simp [*]
+              all_goals (rw [splayBST_equiv]; assumption)
+      
 
 theorem splay_BST (t : STree α) (key : Nat)
   : BST t -> BST (t.splay key) := by
