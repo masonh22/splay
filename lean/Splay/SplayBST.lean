@@ -4,51 +4,6 @@ import Splay.Tactics
 import Splay.STree
 import Splay.BST
 
-theorem ins_Forall (t : STree α) (key : Nat) (val : α) (p : Nat -> α -> Prop)
-  : ForallTree p t ->
-    p key val ->
-    ForallTree p (t.ins key val) := by
-  induction t with
-  | leaf =>
-    intros
-    simp [STree.ins]
-    constructor <;> assumption
-  | node l k v r ihl ihr =>
-    intro h hp
-    simp [STree.ins]
-    cases h with
-    | node _ _ _ _ hfl hp2 hfr =>
-      by_cases' (key = k) heq
-      . rw [<-heq]
-        constructor <;> assumption
-      . by_cases' (key < k) hlt
-        . constructor <;> simp [*]
-        . constructor <;> simp [*]
-
-theorem obvious_arith (a b : Nat) : ¬ a = b -> ¬ a < b -> a > b := by
-  intro h1 h2
-  have h3 : a ≥ b := by linarith
-  by_cases' (b < a) h4
-  apply h1
-  linarith
-
-theorem ins_BST (t : STree α) (key : Nat) (val : α)
-  : BST t -> BST (t.ins key val) := by
-  intro hbst
-  induction hbst with
-  | leaf => constructor <;> constructor
-  | node l k v r hfl hfr hbstl hbstr ihl ihr =>
-    simp [STree.ins]
-    by_cases' (key = k) heq
-    . constructor <;> simp [*]
-    . by_cases' (key < k) hlt
-      . constructor <;> try assumption
-        apply ins_Forall <;> assumption
-      . constructor <;> try assumption
-        apply ins_Forall
-        assumption
-        apply obvious_arith <;> assumption
-
 theorem splay_Forall (t : STree α) (key : Nat) (p : Nat -> α -> Prop)
   : ForallTree p t -> ForallTree p (t.splay key) := by
   induction t using STree.inductionOn with

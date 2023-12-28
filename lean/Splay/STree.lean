@@ -82,7 +82,7 @@ def STree.lookup' (tree : STree α) (key : Nat) : Option α × STree α :=
   (tree.lookup_aux key, tree.splay key)
 
 @[simp]
-def STree.lookup (tree : STree α) (key : Nat) : Option α × STree α :=
+def STree.lookup? (tree : STree α) (key : Nat) : Option α × STree α :=
   match tree.splay key with
   | leaf => (none, leaf)
   | node l k v r =>
@@ -91,6 +91,7 @@ def STree.lookup (tree : STree α) (key : Nat) : Option α × STree α :=
 
 -- TODO doc
 -- insert for normal bst
+@[simp]
 def STree.ins (tree : STree α) (key : Nat) (val : α) : STree α :=
   match tree with
   | leaf => node leaf key val leaf
@@ -99,9 +100,11 @@ def STree.ins (tree : STree α) (key : Nat) (val : α) : STree α :=
     else if key < k then node (l.ins key val) k v r
     else node l k v (r.ins key val)
 
+@[simp]
 def STree.insert (tree : STree α) (key : Nat) (val : α) : STree α :=
   splay (tree.ins key val) key
 
+@[simp]
 def STree.elements (tree : STree α) : List (Nat × α) :=
   match tree with
   | leaf => []
@@ -257,8 +260,8 @@ theorem splay_bound_equiv (tree : STree α) (key : Nat)
 
 -- NOTE: revert is a tactic
 
-theorem lookup_equiv (tree : STree α) (key : Nat)
-  : (tree.lookup key).1 = (tree.lookup' key).1 := by
+theorem splay_lookup_equiv (tree : STree α) (key : Nat)
+  : (tree.lookup? key).1 = (tree.lookup' key).1 := by
   induction tree using STree.inductionOn with
   | base => rfl
   | ind_te k v => simp; by_cases' (key = k) h

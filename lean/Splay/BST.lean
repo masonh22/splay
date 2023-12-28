@@ -137,3 +137,142 @@ theorem splayBST_equiv (tree : STree α) : BST tree <-> splayBST tree := by
         cases hfr with
         | node _ _ _ _ hfrl2 hrk hfrr2 =>
           constructor <;> constructor <;> assumption
+
+theorem ins_Forall (t : STree α) (key : Nat) (val : α) (p : Nat -> α -> Prop)
+  : ForallTree p t ->
+    p key val ->
+    ForallTree p (t.ins key val) := by
+  induction t with
+  | leaf =>
+    intros
+    simp [STree.ins]
+    constructor <;> assumption
+  | node l k v r ihl ihr =>
+    intro h hp
+    simp [STree.ins]
+    cases h with
+    | node _ _ _ _ hfl hp2 hfr =>
+      by_cases' (key = k) heq
+      . rw [<-heq]
+        constructor <;> assumption
+      . by_cases' (key < k) hlt
+        . constructor <;> simp [*]
+        . constructor <;> simp [*]
+
+theorem obvious_arith (a b : Nat) : ¬ a = b -> ¬ a < b -> a > b := by
+  intro h1 h2
+  have h3 : a ≥ b := by linarith
+  by_cases' (b < a) h4
+  apply h1
+  linarith
+
+theorem ins_BST (t : STree α) (key : Nat) (val : α)
+  : BST t -> BST (t.ins key val) := by
+  intro hbst
+  induction hbst with
+  | leaf => constructor <;> constructor
+  | node l k v r hfl hfr hbstl hbstr ihl ihr =>
+    simp [STree.ins]
+    by_cases' (key = k) heq
+    . constructor <;> simp [*]
+    . by_cases' (key < k) hlt
+      . constructor <;> try assumption
+        apply ins_Forall <;> assumption
+      . constructor <;> try assumption
+        apply ins_Forall
+        assumption
+        apply obvious_arith <;> assumption
+
+-- TODO where to put?
+inductive Forall {α : Type u} (p : α -> Prop) : List α -> Prop
+  | nil : Forall p .nil
+  | cons --(e : α) (l : List α)
+    : p e ->
+      Forall p l ->
+      Forall p (e :: l)
+
+theorem Forall_app {α : Type} (p : α -> Prop) (l1 l2 : List α)
+  : Forall p l1 ∧ Forall p l2 <-> Forall p (l1 ++ l2) := by
+  apply Iff.intro
+  case mp =>
+    induction l1 with
+    | nil => simp
+    | cons e l1 ihl1 =>
+      intros h
+      cases h
+      rename_i hfl1 hfl2
+      cases hfl1
+      rename_i hpe hfl1
+      constructor
+      apply hpe
+      apply ihl1
+      apply And.intro <;> assumption
+  case mpr =>
+    induction l1 with
+    | nil =>
+      simp
+      intro h
+      apply And.intro
+      constructor
+      apply h
+    | cons e l1 ih =>
+      intro h
+      cases h
+      rename_i hpe hfl
+      have ihl : Forall p l1 ∧ Forall p l2 := by
+        apply ih
+        apply hfl
+      cases ihl
+      rename_i ihl1 ihl2
+      apply And.intro
+      constructor <;> assumption
+      assumption
+
+def curry (f : α -> β -> γ) (x : α × β) :=
+  match x with | (a, b) => f a b
+
+theorem Forall_relate {α : Type} (p : Nat -> α -> Prop) (t : STree α)
+  : ForallTree p t <-> Forall (curry p) t.elements := by
+  apply Iff.intro
+  case mp =>
+    intro h
+    induction h with
+    | leaf => simp; constructor
+    | node l k v r hfl hp hfr ihl ihr =>
+      simp
+      rw [<-Forall_app]
+      apply And.intro
+      assumption
+      constructor <;> assumption
+  case mpr =>
+    intro h
+    induction t with
+    | leaf => constructor
+    | node l k v r ihl ihr =>
+      simp at h
+      rw [<-Forall_app] at h
+      cases h
+      rename_i hl hr
+      cases hr
+      rename_i hp hr
+      constructor <;> try simp [*]
+      apply hp
+
+theorem Forall_imp {α : Type} (p : α -> Prop) (q : α -> Prop) (l : List α)
+  : Forall p l ->
+    (∀ a, p a -> q a) ->
+    Forall q l := by
+  induction l with
+  | nil =>
+    intros
+    constructor
+  | cons e t ih =>
+    intros h1 h2
+    cases h1
+    rename_i hpe h1
+    constructor
+    apply h2
+    apply hpe
+    apply ih
+    apply h1
+    apply h2
