@@ -2,7 +2,7 @@ import Std.Data.AssocList
 
 import Splay.STree
 import Splay.SplayBST
-import Splay.Assoc
+import Splay.AssocRelate
 ---- TODO section the bst invariant, proving insert_BST ----
 
 theorem splay_BST (t : STree α) (key : Nat)

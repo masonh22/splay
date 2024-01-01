@@ -1,6 +1,7 @@
 import Mathlib.Tactic.Linarith
 import Std.Tactic.Basic
 
+import Splay.Assoc
 import Splay.Tactics
 
 inductive STree (α : Type u) where
@@ -105,7 +106,7 @@ def STree.insert (tree : STree α) (key : Nat) (val : α) : STree α :=
   splay (tree.ins key val) key
 
 @[simp]
-def STree.elements (tree : STree α) : List (Nat × α) :=
+def STree.elements (tree : STree α) : Assoc α :=
   match tree with
   | leaf => []
   | node l k v r => l.elements ++ [(k, v)] ++ r.elements
